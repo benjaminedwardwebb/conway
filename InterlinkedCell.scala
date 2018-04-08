@@ -1,8 +1,8 @@
-trait Interlinked extends Cell {
+trait Interlinkable extends Cell {
 	def neighbors: Seq[Cell]
 }
 
-object EndCell extends Cell(false) {
+object EndCell extends Cell(false) with Interlinkable {
 	def reproduce: Cell = this
 	def neighbors: Seq[Cell] = Seq(this)
 	def tick(implicit conway: Conway): Cell = this
@@ -19,7 +19,7 @@ case class InterlinkedCell (
 	private val bottomLeft: Cell = EndCell ,
 	private val bottom: Cell = EndCell,
 	private val bottomRight: Cell = EndCell
-) extends Cell(state) with Interlinked {
+) extends Cell(state) with Interlinkable {
 	def reproduce(
 		state: Boolean,
 		topLeft: Cell, top: Cell, topRight: Cell,

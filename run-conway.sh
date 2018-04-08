@@ -9,19 +9,17 @@ object RunConway {
 	def main(args: Array[String]) {
 		println("start\n-----")
 
-		var cells: Vector[AddressableCell] = Vector(
-			AddressableCell(true, (0, 0)),
-			AddressableCell(false, (1, 0)), 
-			AddressableCell(false, (2, 0)),
-			AddressableCell(false, (0, 1)), 
-			AddressableCell(true, (1, 1)), 
-			AddressableCell(false, (2, 1)),
-			AddressableCell(true, (0, 2)), 
-			AddressableCell(false, (1, 2)), 
-			AddressableCell(true, (2, 2))
+		var blinker: Vector[AddressedCell] = Vector(
+			AddressedCell(true, (1, 1)),
+			AddressedCell(true, (0, 1)),
+			AddressedCell(true, (2, 1))
 		)
 
-		var conway: Conway = new SmartConway[AddressableCell](3, 3, cells)
+		var conway: Conway = new FiniteConway[AddressedCell](
+			5, 5,
+			AddressedCell(false, (0, 0)),
+			blinker
+		)
 
 		print(conway.toString)
 

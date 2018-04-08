@@ -1,11 +1,26 @@
 import scala.util.{ Try, Success, Failure }
 
-class SmartConway[+C <: Cell](
+class FiniteConway[+C <: Cell](
 	val w: Int, 
 	val h: Int,
-	val cells: Vector[Cell]
+	val default: AddressedCell,
+	val initial: Vector[Cell]
 ) extends Conway {
 	implicit val conway: Conway = this
+
+	val addressables: Vector[Addressable] = initial flatMap {
+		case a: Addressable => Some(a)
+		case c: Cell => None
+	}
+	
+	val cells: Vector[Cell] = Vector.tabulate(w * h) { i =>
+		val address = this addressOf i
+		addressables find { cell => cell.address == address } match {
+			case Some(cell)  => cell
+			case None => default reproduce(false, address)
+		}
+	}
+
 	private val deltas = Seq(
 		(-1, -1), (0, -1), (1, -1),
 		(-1, 0), (1, 0),
@@ -29,16 +44,9 @@ class SmartConway[+C <: Cell](
 	}
 
 	def neighborsOf(cell: Cell): Seq[Cell] = cell match {
-		case cell: Interlinked => cell.neighbors
-		case cell: AddressableCell => {
-			deltas map { 
-				case (i, j) => (cell.address._1 + i, cell.address._2 + j)
-			} flatMap {
-				address => this getCellAt address
-			}
-		}
+		case cell: Interlinkable => cell neighbors
 		case cell: Cell => {
-			val address = this addressOf(cells indexOf cell)
+			val address = this addressOf cell
 			deltas map { 
 				case (i, j) => (address._1 + i, address._2 + j)
 			} flatMap {
@@ -59,8 +67,8 @@ class SmartConway[+C <: Cell](
 		}
 	}
 
-	def tick: SmartConway[C] = new SmartConway(
-		w, h, cells map { cell => cell.tick(this) }
+	def tick: FiniteConway[C] = new FiniteConway(
+		w, h, default, cells map { cell => cell.tick }
 	)
 
 	override def toString: String = {

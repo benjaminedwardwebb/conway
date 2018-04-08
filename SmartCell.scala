@@ -6,10 +6,10 @@ case class SmartCell(
 	private val topRight: Cell = EndCell,
 	private val left: Cell = EndCell,
 	private val right: Cell = EndCell,
-	private val bottomLeft: Cell = EndCell ,
+	private val bottomLeft: Cell = EndCell,
 	private val bottom: Cell = EndCell,
 	private val bottomRight: Cell = EndCell
-) extends Cell(state) with Addressable with Interlinked {
+) extends Cell(state) with Addressable with Interlinkable {
 	def reproduce(
 		state: Boolean, address: (Int, Int), neighbors: Seq[Cell]
 	): Cell = SmartCell(
