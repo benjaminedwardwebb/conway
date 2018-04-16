@@ -2,7 +2,7 @@ import scala.util.{ Try, Success, Failure }
 
 class FiniteConway[C <: Cell[C]](
 	val default: C,
-	val initial: Vector[C], // should probably be restricted to C cells only
+	val initial: Vector[C],
 	val w: Int, 
 	val h: Int
 ) extends Conway[C] {
@@ -28,11 +28,6 @@ class FiniteConway[C <: Cell[C]](
 		case cell: Cell[C] => cells indexOf cell
 		case address: Address => address._2 * w + address._1
 	}
-
-	/*
-	def indexOf(cell: Cell[C]): Index = cells indexOf cell
-	def indexOf(address: (Int, Int)): Index = address._2 * w + address._1
-	*/
 
 	def getCellAt(address: (Int, Int)): Option[C] = Try {
 		cells(this indexOf address)
