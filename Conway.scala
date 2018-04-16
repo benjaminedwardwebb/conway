@@ -30,7 +30,7 @@ object Addressable {
 }
 
 trait Addressed extends Addressable {
-	def address: (Int, Int)
+	def address: Address
 }
 
 case class Index(val int: Int) extends Addressable

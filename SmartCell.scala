@@ -1,6 +1,6 @@
 case class SmartCell(
 	private val state: Boolean,
-	private val addr: (Int, Int) = (0, 0),
+	private val addr: Address = (0, 0),
 	private val neighbs: Seq[SmartCell] = Seq(
 		SmartCell, SmartCell, SmartCell,
 		SmartCell, SmartCell,
@@ -13,7 +13,7 @@ case class SmartCell(
 		this neighbors // tmp, needs to be rewritten
 	)
 
-	def address: (Int, Int) = this addr
+	def address: Address = this addr
 
 	def neighbors: Seq[SmartCell] = this neighbs
 
