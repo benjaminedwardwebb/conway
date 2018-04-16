@@ -1,48 +1,28 @@
-trait Interlinkable extends Cell {
-	def neighbors: Seq[Cell]
-}
-
-object EndCell extends Cell(false) with Interlinkable {
-	def reproduce: Cell = this
-	def neighbors: Seq[Cell] = Seq(this)
-	def tick(implicit conway: Conway): Cell = this
-	override def toString: String = " "
-}
-
-case class InterlinkedCell (
+case class InterlinkedCell(
 	private val state: Boolean = false,
-	private val topLeft: Cell = EndCell,
-	private val top: Cell = EndCell,
-	private val topRight: Cell = EndCell,
-	private val left: Cell = EndCell,
-	private val right: Cell = EndCell,
-	private val bottomLeft: Cell = EndCell ,
-	private val bottom: Cell = EndCell,
-	private val bottomRight: Cell = EndCell
-) extends Cell(state) with Interlinkable {
-	def reproduce(
-		state: Boolean,
-		topLeft: Cell, top: Cell, topRight: Cell,
-		left: Cell, right: Cell,
-		bottomLeft: Cell, bottom: Cell, bottomRight: Cell
-	): Cell = InterlinkedCell(
-		state,
-		topLeft, top, topRight,
-		left, right,
-		bottomLeft, bottom, bottomRight
+	private val neighbs: Seq[InterlinkedCell] = Seq(
+		InterlinkedCell, InterlinkedCell, InterlinkedCell,
+		InterlinkedCell, InterlinkedCell,
+		InterlinkedCell, InterlinkedCell, InterlinkedCell
 	)
+) extends Cell[InterlinkedCell](state) with Interlinked[InterlinkedCell] {
+	def reproduce(index: Index)(implicit conway: Conway[InterlinkedCell]): InterlinkedCell = {
+		val address = conway addressOf index
+		val neighbors = Conway.deltas.map {
+			case (i, j) => (address._1 + i, address._2 + j)
+		} map {
+			address => conway indexOf address
+		} map {
+			index => conway cells index
+		}
 
-	def neighbors: Seq[Cell] = Seq(
-		topLeft, top, topRight,
-		left, right,
-		bottomLeft, bottom, bottomRight
-	)
+		InterlinkedCell(this state, neighbors)
+	}
 
-	def tick(implicit conway: Conway): Cell = InterlinkedCell(
-		conway determine(this, this neighbors),
-		topLeft, top, topRight,
-		left, right,
-		bottomLeft, bottom, bottomRight
+	def neighbors: Seq[InterlinkedCell] = this neighbs
+
+	def tick(implicit conway: Conway[InterlinkedCell]): InterlinkedCell = InterlinkedCell(
+		conway determine(this, this neighbors), this neighbors
 	)
 	
 	override def toString: String = {
@@ -50,3 +30,7 @@ case class InterlinkedCell (
 		else " "
 	}
 }
+
+object InterlinkedCell 
+extends InterlinkedCell(false, Seq()) 
+with Interlinked[InterlinkedCell]

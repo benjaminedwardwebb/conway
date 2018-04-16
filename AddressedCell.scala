@@ -1,18 +1,14 @@
-trait Addressable extends Cell {
-	def address: (Int, Int)
-}
-
 case class AddressedCell(
 	private val state: Boolean,
 	private val addr: (Int, Int)
-) extends Cell(state) with Addressable {
-	def reproduce(state: Boolean, address: (Int, Int)): Cell = AddressedCell(
-		state, address
-	)
+) extends Cell[AddressedCell](state) with Addressed {
+	override def reproduce(index: Index)(implicit conway: Conway[AddressedCell]): AddressedCell = {
+		AddressedCell(this state, conway addressOf index)
+	}
 
 	def address: (Int, Int) = this addr
 
-	def tick(implicit conway: Conway): Cell = AddressedCell(
+	override def tick(implicit conway: Conway[AddressedCell]): AddressedCell = AddressedCell(
 		conway determine(this, conway neighborsOf this),
 		this addr
 	)

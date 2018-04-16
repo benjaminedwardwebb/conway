@@ -1,13 +1,11 @@
 case class BooleanCell(
 	private val state: Boolean
-) extends Cell(state) {
-	def reproduce(state: Boolean): Cell = BooleanCell(state)
+) extends Cell[BooleanCell](state) {
+	def reproduce(index: Index)(implicit conway: Conway[BooleanCell]): BooleanCell = BooleanCell(
+		this state
+	)
 
-	def address(implicit conway: Conway): (Int, Int) = conway addressOf this
-
-	def neighbors(implicit conway: Conway): Seq[Cell] = conway neighborsOf this
-
-	def tick(implicit conway: Conway): Cell = BooleanCell(
+	def tick(implicit conway: Conway[BooleanCell]): BooleanCell = BooleanCell(
 		conway determine(this, conway neighborsOf this)
 	)
 

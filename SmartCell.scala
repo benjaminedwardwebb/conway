@@ -1,37 +1,24 @@
 case class SmartCell(
 	private val state: Boolean,
 	private val addr: (Int, Int) = (0, 0),
-	private val topLeft: Cell = EndCell,
-	private val top: Cell = EndCell,
-	private val topRight: Cell = EndCell,
-	private val left: Cell = EndCell,
-	private val right: Cell = EndCell,
-	private val bottomLeft: Cell = EndCell,
-	private val bottom: Cell = EndCell,
-	private val bottomRight: Cell = EndCell
-) extends Cell(state) with Addressable with Interlinkable {
-	def reproduce(
-		state: Boolean, address: (Int, Int), neighbors: Seq[Cell]
-	): Cell = SmartCell(
-		state, address,
-		neighbors(0), neighbors(1), neighbors(2),
-		neighbors(3), neighbors(4),
-		neighbors(5), neighbors(6), neighbors(7)
+	private val neighbs: Seq[SmartCell] = Seq(
+		SmartCell, SmartCell, SmartCell,
+		SmartCell, SmartCell,
+		SmartCell, SmartCell, SmartCell
+	)
+) extends Cell[SmartCell](state) with Addressed with Interlinked[SmartCell] {
+	def reproduce(index: Index)(implicit conway: Conway[SmartCell]): SmartCell = SmartCell(
+		this state,
+		conway addressOf index,
+		this neighbors // tmp, needs to be rewritten
 	)
 
 	def address: (Int, Int) = this addr
 
-	def neighbors: Seq[Cell] = Seq(
-		topLeft, top, topRight,
-		left, right,
-		bottomLeft, bottom, bottomRight
-	)
+	def neighbors: Seq[SmartCell] = this neighbs
 
-	def tick(implicit conway: Conway): Cell = SmartCell(
-		conway determine(this, this neighbors), this addr,
-		topLeft, top, topRight,
-		left, right,
-		bottomLeft, bottom, bottomRight
+	def tick(implicit conway: Conway[SmartCell]): SmartCell = SmartCell(
+		conway determine(this, this neighbors), this addr, this neighbs
 	)
 	
 	override def toString: String = {
@@ -39,3 +26,7 @@ case class SmartCell(
 		else " "
 	}
 }
+
+object SmartCell 
+extends SmartCell(false, (0, 0), Seq()) 
+with Interlinked[SmartCell] 

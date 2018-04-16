@@ -1,53 +1,51 @@
 import scala.util.{ Try, Success, Failure }
 
-class FiniteConway[+C <: Cell](
+class FiniteConway[C <: Cell[C]](
+	val default: C,
+	val initial: Vector[C], // should probably be restricted to C cells only
 	val w: Int, 
-	val h: Int,
-	val default: AddressedCell,
-	val initial: Vector[Cell]
-) extends Conway {
-	implicit val conway: Conway = this
+	val h: Int
+) extends Conway[C] {
+	implicit val conway: Conway[C] = this
 
-	val addressables: Vector[Addressable] = initial flatMap {
-		case a: Addressable => Some(a)
-		case c: Cell => None
-	}
-	
-	val cells: Vector[Cell] = Vector.tabulate(w * h) { i =>
+	val cells: Vector[C] = Vector.tabulate(w * h) { i =>
 		val address = this addressOf i
-		addressables find { cell => cell.address == address } match {
-			case Some(cell)  => cell
-			case None => default reproduce(false, address)
+
+		initial find { cell => this.addressOf(cell) == address } match {
+			case Some(cell) => cell
+			case None => default reproduce i
 		}
 	}
 
-	private val deltas = Seq(
-		(-1, -1), (0, -1), (1, -1),
-		(-1, 0), (1, 0),
-		(-1, 1), (0, 1), (1, 1)
-	)
-
-	def indexOf(cell: Cell): Int = cells indexOf cell
-	def indexOf(address: (Int, Int)): Int = address._2 * w + address._1
-
-	def addressOf(cell: Cell): (Int, Int) = cell match {
-		case cell: Addressable => cell address
-		case cell: Cell => this addressOf(this indexOf cell)
+	def addressOf(addressable: Addressable): Address = addressable match {
+		case cell: Addressed => cell address
+		// case cell: Interlinked => chech cached cell-address pairs?
+		case cell: Cell[C] => this addressOf(this indexOf cell)
+		case index: Index => (index % w, index / w)
 	}
-	def addressOf(index: Int): (Int, Int) = (index % w, index / w)
 
-	def getCellAt(address: (Int, Int)): Option[Cell] = Try {
+	def indexOf(indexable: Indexable): Index = indexable match {
+		case cell: Cell[C] => cells indexOf cell
+		case address: Address => address._2 * w + address._1
+	}
+
+	/*
+	def indexOf(cell: Cell[C]): Index = cells indexOf cell
+	def indexOf(address: (Int, Int)): Index = address._2 * w + address._1
+	*/
+
+	def getCellAt(address: (Int, Int)): Option[C] = Try {
 		cells(this indexOf address)
 	} match {
 		case Success(cell) => Some(cell)
 		case Failure(e) => None
 	}
 
-	def neighborsOf(cell: Cell): Seq[Cell] = cell match {
-		case cell: Interlinkable => cell neighbors
-		case cell: Cell => {
+	def neighborsOf(cell: C): Seq[C] = cell match {
+		case cell: Interlinked[C] => cell neighbors
+		case cell: Cell[C] => {
 			val address = this addressOf cell
-			deltas map { 
+			Conway.deltas.map { 
 				case (i, j) => (address._1 + i, address._2 + j)
 			} flatMap {
 				address => this getCellAt address
@@ -55,7 +53,7 @@ class FiniteConway[+C <: Cell](
 		}
 	}
 
-	def determine(cell: Cell, neighbors: Seq[Cell]): Boolean = {
+	def determine(cell: C, neighbors: Seq[C]): Boolean = {
 		val liveNeighbors = neighbors count { cell => cell isAlive }
 		if (cell isAlive) {
 			if (liveNeighbors < 2) false
@@ -67,8 +65,8 @@ class FiniteConway[+C <: Cell](
 		}
 	}
 
-	def tick: FiniteConway[C] = new FiniteConway(
-		w, h, default, cells map { cell => cell.tick }
+	def tick: FiniteConway[C] = new FiniteConway[C](
+		default, cells map { cell => cell.tick }, w, h
 	)
 
 	override def toString: String = {
